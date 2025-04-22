@@ -7,31 +7,31 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "usuario")
+@Document(collection = "users")
 public class User {
 
     @Id
     private String id;
 
-    @Field(name = "Nombre")
+    @Field(name = "name")
     private String name;
 
-    @Field(name = "Apellidos")
+    @Field(name = "lastName")
     private String lastname;
 
-    @Field(name = "Correo")
+    @Field(name = "email")
     private String email;
 
-    @Field(name = "Contraseña")
+    @Field(name = "password")
     private String passw;
 
-    @Field(name = "Fecha de Creacion")
+    @Field(name = "createAt")
     private LocalDateTime createAt;
 
-    @Field(name = "Ultimo acceso")
+    @Field(name = "updateAt")
     private LocalDateTime updateAt;
 
-    @Field(name = "Polizas")
+    @Field(name = "policies")
     private List<Poliza> policies;
 
     public User() {

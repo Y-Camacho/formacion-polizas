@@ -6,13 +6,13 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 public class Poliza {
 
-    @Field(name = "Numero")
+    @Field(name = "number")
     private int number;
 
-    @Field(name = "Modalidad")
+    @Field(name = "modality")
     private String modality;
 
-    @Field(name = "Prima")
+    @Field(name = "price")
     private double price;
 
     public Poliza() {
