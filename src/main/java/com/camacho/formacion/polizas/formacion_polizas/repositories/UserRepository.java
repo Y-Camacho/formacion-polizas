@@ -10,6 +10,6 @@ import com.camacho.formacion.polizas.formacion_polizas.entities.User;
 
 public interface UserRepository extends MongoRepository<User, String> {
 
-    @Query("{'lastName': {$regex: /?0/}}")
+    @Query("{'lastName': {$regex: /?0/i}}")
     List<User> findLikeLastName(String lastname);
 }

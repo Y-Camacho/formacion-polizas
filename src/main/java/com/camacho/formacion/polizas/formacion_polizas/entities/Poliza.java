@@ -41,9 +41,10 @@ public class Poliza {
     public void setPrice(double prima) {
         this.price = prima;
     }
+    
     @Override
     public String toString() {
-        return "Poliza [Numero=" + number + ", Modalidad=" + modality + ", Prima=" + price + "]";
+        return "Poliza [number=" + number + ", modality=" + modality + ", price=" + price + "]";
     }
     @Override
     public int hashCode() {
