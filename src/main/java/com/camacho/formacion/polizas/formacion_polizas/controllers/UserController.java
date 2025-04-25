@@ -25,6 +25,8 @@ import com.camacho.formacion.polizas.formacion_polizas.repositories.UserReposito
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @CrossOrigin
@@ -51,7 +53,11 @@ public class UserController {
 
     @Operation(summary = "Obtener todos los usuarios", description = "Devuelve la lista de todos los usuarios")
     @GetMapping
-    public List<User> getUsers() {
+    public List<User> getUsers(@RequestParam(required = false) String lastName) {
+
+        if(lastName != null)
+            return userRepository.findLikeLastName(lastName);
+
         return userRepository.findAll();
     }
 
@@ -88,6 +94,8 @@ public class UserController {
         userRepository.deleteById(id);
         return id;
     }
+
+    
 
     // Métodos para añadir pólizas
 
