@@ -1,7 +1,11 @@
 package com.camacho.formacion.polizas.formacion_polizas.controllers;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +31,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @RestController
 @CrossOrigin
 @RequestMapping("/users")
 public class UserController {
-
 
     @Autowired
     private UserRepository userRepository;
@@ -47,6 +49,16 @@ public class UserController {
         @ApiResponse(responseCode = "400", description = "Solicitud mal formada")
     })
     public User createUser(@RequestBody User user) {
+        Optional<User> optUser = userRepository.findByEmail(user.getEmail());
+        if(optUser.isPresent()){
+            User userGet = optUser.get();
+            if (userGet.getEmail().equals(user.getEmail())) {
+                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Ya existe un usuario con este correo");
+            }
+        }
+
+        user.setCreateAt(LocalDateTime.now());
+        user.setUpdateAt(LocalDateTime.now());
         userRepository.save(user);
         return user;
     }
@@ -90,12 +102,13 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable String id) {
+    public Map<String, String> deleteUser(@PathVariable String id) {
+        Map<String, String> respMap = new HashMap<String, String>();
         userRepository.deleteById(id);
-        return id;
+        respMap.put("idUser", id);
+        respMap.put("message", "Usuario eliminado");
+        return respMap;
     }
-
-    
 
     // Métodos para añadir pólizas
 
@@ -133,24 +146,26 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     @PostMapping("/{id}/polizas")
-    public ResponseEntity<User> setUserPolizas(@PathVariable String id,  @RequestBody List<Poliza> polizas) {
+    public ResponseEntity<User> setUserPolizas(@PathVariable String id,  @RequestBody Poliza polizas) {
         Optional<User> optUser = userRepository.findById(id);
         if (optUser.isPresent()) {
             User user = optUser.get();
             List<Poliza> userP = user.getPolicies();
-            boolean volver;
-            
-            for (Poliza p : polizas) {
-                volver = false;
-                for (Poliza pol : userP) {
-                    if (pol.getNumber() == p.getNumber()) {
+            boolean volver = false;
+
+            if(userP == null){ // Si el usuario no tiene pólizas añadimos la enviada de una vez
+                userP = new ArrayList<Poliza>();
+                userP.add(polizas);
+            } else {
+                for(Poliza p : userP) {
+                    if(p.getNumber() == polizas.getNumber()){
                         volver = true;
-                        break; // Si encontramos una coincidencia, no añadimos la póliza
+                        break;
                     }
                 }
-                
-                if (!volver) {
-                    userP.add(p); // Añadimos la póliza solo si no había coincidencia
+    
+                if(!volver) {
+                    userP.add(polizas);
                 }
             }
             
@@ -175,7 +190,8 @@ public class UserController {
         @ApiResponse(responseCode = "404", description = "Póliza no encontrada")
     })
     @DeleteMapping("/{id}/polizas/{idPoliza}")
-    public ResponseEntity<String> deteleUserPoliza(@PathVariable String id, @PathVariable String idPoliza) {
+    public ResponseEntity<Map<String, String>> deteleUserPoliza(@PathVariable String id, @PathVariable String idPoliza) {
+        Map<String, String> resMap = new HashMap<String, String>();
         Optional<User> optUser = userRepository.findById(id);
         // Si el usuario no existe, devolver un 404 con un mensaje personalizado
         if (optUser.isEmpty()) {
@@ -196,14 +212,21 @@ public class UserController {
             }
         }
 
+        // Si se eliminaron todas las pólizas, el atributo pasa a ser null;
+        if(userP.size() == 0) userP = null;
+
         if (found) {
             // Si se eliminó la póliza, guardar el usuario con la lista actualizada
             user.setPolicies(userP);
             userRepository.save(user);
-            return ResponseEntity.ok("Poliza eliminada con éxito");
+            resMap.put("user", user.toString());
+            resMap.put("message", "Póliza eliminada con éxito");
+            return ResponseEntity.ok(resMap);
         } else {
             // Si no se encontró la póliza, devolver un 404
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Póliza no encontrada");
+            resMap.put("user", user.toString());
+            resMap.put("message", "Póliza no encontrada");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resMap);
         }
     }
 
@@ -253,6 +276,4 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Póliza no encontrada");
         }
     }
-
-
 }
